@@ -1,0 +1,49 @@
+﻿name: Security Audit CI
+
+# Trigger workflow on pushes or pull requests targeting the main branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  audit-and-test:
+    name: Run Unit Tests & Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python 3.11 environment
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Step 3: Install project requirements
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Run all automated unit tests (must pass)
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests -p "test_*.py" -v
+
+      # Step 5: Run the security auditor on demo files
+      # Note: The demo folder deliberately contains test vulnerabilities,
+      # which causes the scanner to exit with code 1 as expected in security tools.
+      # continue-on-error allows the full security report to be displayed in the CI log.
+      - name: Run security auditor on demo files
+        continue-on-error: true
+        run: |
+          python scanner.py demo
+
+      # Step 6: Verify clean audit on safe serverless function (exits with code 0)
+      - name: Run security auditor on safe function
+        run: |
+          python scanner.py demo/safe_function.py
