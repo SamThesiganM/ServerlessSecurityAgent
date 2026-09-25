@@ -29,17 +29,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Run all automated unit tests (must pass)
+      # Step 4: Run all automated unit tests (must pass; fails workflow if tests fail)
       - name: Run unit tests
         run: |
           python -m unittest discover -s tests -p "test_*.py" -v
 
-      # Step 5: Run the security auditor on demo files
-      # Note: The demo folder deliberately contains test vulnerabilities,
-      # which causes the scanner to exit with code 1 as expected in security tools.
-      # continue-on-error allows the full security report to be displayed in the CI log.
+      # Step 5: Run security auditor on demo files (displays all findings & summary table)
       - name: Run security auditor on demo files
-        continue-on-error: true
         run: |
           python scanner.py demo
 

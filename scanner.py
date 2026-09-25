@@ -66,7 +66,6 @@ class AuditorCLI:
                 parsed = analyzer.analyze()
 
                 if not parsed:
-                    # Report syntax or parsing error gracefully
                     err_desc = analyzer.syntax_error or "Unknown parsing error."
                     raw_findings.append(
                         Finding(
@@ -81,11 +80,9 @@ class AuditorCLI:
                         )
                     )
                 else:
-                    # Discover external serverless input sources
                     event_findings = self.event_scanner.scan_analyzer(analyzer)
                     raw_findings.extend(event_findings)
 
-                    # Discover dangerous sinks and taint flows (SQLi, Command Injection, Unsafe Input)
                     inj_findings = self.injection_scanner.scan_analyzer(analyzer)
                     raw_findings.extend(inj_findings)
 
@@ -145,7 +142,6 @@ class AuditorCLI:
         print("--------")
 
         for finding in findings:
-            # Format file path nicely relative to current working directory
             rel_file = Path(finding.file).as_posix()
             try:
                 rel_file = Path(finding.file).resolve().relative_to(Path.cwd().resolve()).as_posix()
@@ -190,13 +186,14 @@ class AuditorCLI:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Serverless Function Security Auditor - Phase 2 AST CLI Scanner",
+        description="Serverless Function Security Auditor - Static Analysis CLI Scanner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   python scanner.py demo
   python scanner.py path/to/serverless-project
   python scanner.py demo --format json
+  python scanner.py demo --strict
         """
     )
     parser.add_argument(
@@ -211,6 +208,11 @@ Examples:
         default="text",
         help="Output report format (default: text)"
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail with exit code 1 if critical or high vulnerabilities are detected (useful for blocking CI gates on production code)"
+    )
 
     args = parser.parse_args()
 
@@ -223,10 +225,13 @@ Examples:
     else:
         cli.print_text_report(findings)
 
-    # Return exit code 1 if critical or high vulnerabilities are discovered
-    crit, high, _, _ = cli.count_severities(findings)
-    if crit > 0 or high > 0:
-        sys.exit(1)
+    # In strict mode, fail the process if critical or high vulnerabilities are detected.
+    # In default reporting/advisory mode, exit 0 to indicate the audit executed successfully.
+    if args.strict:
+        crit, high, _, _ = cli.count_severities(findings)
+        if crit > 0 or high > 0:
+            sys.exit(1)
+
     sys.exit(0)
 
 
