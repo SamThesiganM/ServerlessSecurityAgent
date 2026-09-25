@@ -1,0 +1,29 @@
+﻿{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "FullAdminAccess",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "BroadS3Permissions",
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ExcessiveIAMPrivileges",
+      "Effect": "Allow",
+      "Action": "iam:*",
+      "Resource": "arn:aws:iam::123456789012:role/*"
+    },
+    {
+      "Sid": "BroadDynamoDBAccess",
+      "Effect": "Allow",
+      "Action": "dynamodb:*",
+      "Resource": "arn:aws:dynamodb:us-east-1:123456789012:table/Orders"
+    }
+  ]
+}

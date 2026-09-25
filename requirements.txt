@@ -1,0 +1,5 @@
+﻿# Serverless Function Security Auditor - Phase 1 Requirements
+# Note: Core scanning functionality relies entirely on Python 3.11+ standard library.
+# The following dependencies are optional for testing and linting:
+
+pytest>=7.4.0
